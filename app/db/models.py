@@ -1,1 +1,0 @@
-# DB schemas (e.g., User, Item for recommendations)

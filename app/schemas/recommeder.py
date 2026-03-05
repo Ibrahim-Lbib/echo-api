@@ -1,1 +1,1 @@
-# Pydantic models (e.g., Request/Response schemas)
+# e.g., schemas for user input and recommendation output
