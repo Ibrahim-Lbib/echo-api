@@ -1,5 +1,6 @@
 # Ignore venv, pyc files, etc.
 __pycache__/
+*.pyc
 
 # Environment variables
 .env
