@@ -2,3 +2,8 @@ fastapi
 uvicorn 
 pydantic
 python-dotenv
+sqlalchemy
+numpy
+slowapi
+pytest
+locust
