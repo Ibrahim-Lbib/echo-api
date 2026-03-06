@@ -1,6 +1,8 @@
 # Business logic: e.g., recommendation algorithms or ML calls
 # Logic for generating recommendations (start with dummy data)
 from typing import List, Optional
+from app.database import get_supabase
+from supabase import Client
 
 FAKE_ITEMS = [
     {"id": 1, "name": "Wireless Headphone", "category": "Electronics", "popularity": 85},
@@ -106,15 +108,33 @@ FAKE_ITEMS = [
 ]
 
 async def get_recommendations(user_id: Optional[int], limit: int = 5) -> List[dict]:
-    if user_id is None:
-        sorted_items = sorted(FAKE_ITEMS, key=lambda x: x['popularity'], reverse=True)
-    else:
-        def score(item):
-            base = item['popularity']
-            if (item["popularity"] % 2) == (user_id % 2):
-                base += 1.1
-            return base
-        
-        sorted_items = sorted(FAKE_ITEMS, key=score, reverse=True)
-    
+    db_error = None
+    category_boost = None
+    if user_id:
+        try:
+            supabase = get_supabase()
+            response = supabase.table("user_preferences") \
+                .select("preferred_category") \
+                .eq("user_id", user_id) \
+                .execute()
+            
+            if response.data:
+                category_boost = response.data[0]["preferred_category"]
+                print(f"DEBUG - Found category_boost for user {user_id}: '{category_boost}'")
+            else:
+                print(f"DEBUG - No preferences found for user {user_id} in table")
+
+        except Exception as e:
+            db_error = str(e)
+            print(f"DB error (using fallback): {e}")
+
+    def score(item):
+        base = item["popularity"]
+        if category_boost and item["category"].lower() == category_boost.lower():
+            base += 40  # strong boost for preferred category
+        return base
+
+    sorted_items = sorted(FAKE_ITEMS, key=score, reverse=True)
+    if db_error:
+        sorted_items[0]["name"] = f"DEBUG ERROR: {db_error}"
     return sorted_items[:limit]

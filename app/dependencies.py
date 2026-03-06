@@ -9,7 +9,7 @@ async def get_api_key(x_api_key: str = Header(None, alias="X-API-Key")):
             detail="API Key missing. Please provide X-API-Key header."
         )
 
-    if x_api_key not in [k.strip() for k in settings.API_KEY_EXAMPLES if k.strip()]:
+    if x_api_key not in settings.API_KEYS:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Invalid API key"
