@@ -1,5 +1,6 @@
 # Core router: Endpoints like /recommend/
 from fastapi import APIRouter, Depends, Request, Query, BackgroundTasks
+from typing import Optional, List, Dict
 from app.dependencies import get_api_key
 from app.utils.rate_limiter import limiter
 from app.services.engine import get_recommendations as fetch_recommendations
