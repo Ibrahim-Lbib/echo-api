@@ -1,5 +1,5 @@
 # Entry point: Creates FastAPI app, includes routers
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from app.utils.rate_limiter import limiter
 from slowapi import _rate_limit_exceeded_handler
@@ -25,5 +25,6 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.include_router(recommendations.router)
 
 @app.get("/")
-def root():
+@limiter.limit("20/minute") # Root also protected
+def root(request: Request):
     return {"message": "Welcome to the Recommendation Engine API"}

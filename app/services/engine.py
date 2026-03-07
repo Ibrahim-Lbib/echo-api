@@ -3,6 +3,7 @@
 from typing import List, Optional
 from app.database import get_supabase
 from supabase import Client
+from app.utils.cache import get_cached_recommendations, set_cached_recommendations
 
 FAKE_ITEMS = [
   {"id": 1, "name": "Wireless Headphones", "category": "electronics", "popularity": 85},
@@ -108,11 +109,17 @@ FAKE_ITEMS = [
 ]
 
 async def get_recommendations(user_id: Optional[int], limit: int = 5) -> List[dict]:
-    db_error = None
+    # Create cache key (include limit for flexibility)
+    cache_key = f"recs_{user_id or 'anon'}_{limit}"
+
+    cached = get_cached_recommendations(cache_key)
+    if cached is not None:
+        return cached # Fast path!
+
     category_boost = None
     if user_id:
         try:
-            supabase = get_supabase()
+            supabase = await get_supabase()
             response = supabase.table("user_preferences") \
                 .select("preferred_category") \
                 .eq("user_id", user_id) \
@@ -120,12 +127,8 @@ async def get_recommendations(user_id: Optional[int], limit: int = 5) -> List[di
             
             if response.data:
                 category_boost = response.data[0]["preferred_category"]
-                print(f"DEBUG - Found category_boost for user {user_id}: '{category_boost}'")
-            else:
-                print(f"DEBUG - No preferences found for user {user_id} in table")
 
         except Exception as e:
-            db_error = str(e)
             print(f"DB error (using fallback): {e}")
 
     def score(item):
@@ -135,6 +138,7 @@ async def get_recommendations(user_id: Optional[int], limit: int = 5) -> List[di
         return base
 
     sorted_items = sorted(FAKE_ITEMS, key=score, reverse=True)
-    if db_error:
-        sorted_items[0]["name"] = f"DEBUG ERROR: {db_error}"
+
+    # Cache the result
+    set_cached_recommendations(cache_key, sorted_items)
     return sorted_items[:limit]
