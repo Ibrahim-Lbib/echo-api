@@ -10,3 +10,4 @@ locust
 supabase==2.28.0
 middleware==1.2.3
 cachetools==5.5.0
+upstash-redis==0.2.0
