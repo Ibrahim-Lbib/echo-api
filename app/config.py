@@ -10,8 +10,8 @@ class Settings():
     APP_NAME: str = os.getenv("APP_NAME", "Recommendation Engine API")
 
     # Database Connection
-    SUPABASE_URL: str = os.getenv("SUPABASE_URL")
-    SUPABASE_ANON_KEY: str = os.getenv("SUPABASE_ANON_KEY")
+    SB_URL: str = os.getenv("SUPABASE_URL")
+    SB_KEY: str = os.getenv("SUPABASE_ANON_KEY")
 
     # Supabase PostgreSQL
     SQLALCHEMY_DATABASE_URL: str = os.getenv("DATABASE_URL")
