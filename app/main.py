@@ -6,6 +6,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.routers import recommendations
 from app.exceptions import http_exception_handler, general_exception_handler
+from app.config import settings
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 
@@ -34,11 +35,17 @@ app.include_router(recommendations.router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Specify domains in production
+    allow_origins=settings.CORS_ORIGINS,  # Set CORS_ORIGINS env var in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/health", tags=["health"])
+def health_check():
+    """Liveness check used by Railway and load balancers."""
+    return {"status": "ok"}
+
 
 @app.get("/")
 @limiter.limit("20/minute") # Root also protected

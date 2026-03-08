@@ -193,6 +193,43 @@ All errors return a consistent JSON shape:
 | `429`       | Rate limit exceeded                          |
 | `500`       | Internal server error                        |
 
+## Deployment
+
+EchoAPI is designed to be easily deployable on container-based platforms like **Railway**, **Render**, or **Fly.io**.
+
+### Automated Deployment (Railway)
+
+1. **Connect your GitHub Repo**: Point Railway to your `echo-api` repository.
+2. **Environment Variables**: Configure the following in the Railway dashboard:
+   - `SUPABASE_URL` & `SUPABASE_ANON_KEY`
+   - `UPSTASH_REDIS_REST_URL` & `UPSTASH_REDIS_REST_TOKEN`
+   - `API_KEY_EXAMPLES` (comma-separated keys)
+   - `CORS_ORIGINS`: Set this to your frontend domain (e.g., `https://myapp.com`) or `*` to allow all.
+3. **Deploy**: Railway will automatically detect the `Dockerfile` and `railway.toml` to build and start the service.
+
+### Manual Docker Deployment
+
+```bash
+# Build the production image
+docker build -t echo-api .
+
+# Run with environment variables
+docker run -p 8000:8000 \
+  -e SUPABASE_URL=... \
+  -e SUPABASE_ANON_KEY=... \
+  -e UPSTASH_REDIS_REST_URL=... \
+  -e UPSTASH_REDIS_REST_TOKEN=... \
+  -e API_KEY_EXAMPLES=... \
+  echo-api
+```
+
+### Health Checks
+
+The app provides a `/health` endpoint for monitoring and liveness checks:
+- **URL**: `GET /health`
+- **Response**: `{"status": "ok"}`
+- **Note**: This endpoint does not require an API key or rate limiting.
+
 ## Testing
 
 ```bash
