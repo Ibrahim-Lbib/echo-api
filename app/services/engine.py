@@ -109,6 +109,8 @@ FAKE_ITEMS = [
 ]
 
 async def get_recommendations(user_id: Optional[int], limit: int = 5) -> List[dict]:
+    db_error = False
+
     # Create cache key (include limit for flexibility)
     cache_key = f"recs_{user_id or 'anon'}_{limit}"
 
@@ -119,7 +121,7 @@ async def get_recommendations(user_id: Optional[int], limit: int = 5) -> List[di
     category_boost = None
     if user_id:
         try:
-            supabase = await get_supabase()
+            supabase = get_supabase()
             response = supabase.table("user_preferences") \
                 .select("preferred_category") \
                 .eq("user_id", user_id) \
@@ -127,9 +129,13 @@ async def get_recommendations(user_id: Optional[int], limit: int = 5) -> List[di
             
             if response.data:
                 category_boost = response.data[0]["preferred_category"]
-
+            if category_boost:
+                logger.info(f"User {user_id} has preferred category: {category_boost}")
+            else:
+                logger.info(f"User {user_id} has no preferred category")
         except Exception as e:
-            print(f"DB error (using fallback): {e}")
+            db_error = True
+            logger.error(f"DB error (using fallback): {e}")
 
     def score(item):
         base: int = item["popularity"]
@@ -141,4 +147,6 @@ async def get_recommendations(user_id: Optional[int], limit: int = 5) -> List[di
 
     # Cache the result
     set_cached_recommendations(cache_key, sorted_items)
+    if db_error:
+        return sorted_items[:limit]
     return sorted_items[:limit]

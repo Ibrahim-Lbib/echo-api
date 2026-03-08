@@ -12,7 +12,7 @@ router = APIRouter(
 
 def log_recommendation(user_id: Optional[int], recs: List[Dict]):
     """Background task example: log or pre-warm cache / analytics later"""
-    print(f"Background: Generated{len(recs)} recs for user {user_id}")
+    print(f"Background: Generated {len(recs)} recs for user {user_id}")
     # Later: save to analytics table, pre-compute next batch, etc.
 
 @router.get("/")

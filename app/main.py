@@ -5,13 +5,26 @@ from app.utils.rate_limiter import limiter
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.routers import recommendations
+from app.exceptions import http_exception_handler, general_exception_handler
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 
 app = FastAPI(
     title="Recommendation Engine API",
-    description="Scalable API for recommendations",
-    version="1.0.0"
+    description="Scalable API for generating personalized recommendations",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(Exception, general_exception_handler)
+
+app.include_router(recommendations.router)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], # Specify domains in production
@@ -19,10 +32,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-
-app.include_router(recommendations.router)
 
 @app.get("/")
 @limiter.limit("20/minute") # Root also protected
