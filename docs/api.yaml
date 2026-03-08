@@ -1,9 +1,9 @@
 # Optional: Export OpenAPI spec here
 openapi: 3.0.0
 info:
-  title: Recommendation Engine API
+  title: EchoAPI
   description: |
-    A scalable recommendation engine API.
+    EchoAPI — a scalable recommendation engine API.
 
     Features:
     - API Key authentication

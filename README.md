@@ -1,20 +1,20 @@
-# Recommendation Engine API
+# EchoAPI
 
-A fast, scalable personalized recommendation engine built with [FastAPI](https://fastapi.tiangolo.com/), backed by **Supabase** for user preferences and **Upstash Redis** for lightning-fast cached responses.
+**EchoAPI** is a fast, scalable personalized recommendation engine built with [FastAPI](https://fastapi.tiangolo.com/), backed by **Supabase** for user preferences and **Upstash Redis** for lightning-fast cached responses.
 
 ## Technologies
 
-| Library | Purpose |
-|---|---|
-| **FastAPI** | High-performance async web framework |
-| **Uvicorn** | ASGI web server |
-| **Pydantic** | Data validation and settings management |
-| **python-dotenv** | Environment variable loading |
-| **Slowapi** | Per-IP rate limiting (60 req/min on recommendations, 20 req/min on root) |
-| **Supabase** | Serverless Postgres DB — stores user preferences |
-| **Upstash Redis** | Serverless Redis — caches recommendation results (TTL: 5 min) |
-| **cachetools** | In-memory caching utilities |
-| **Pytest** | Unit and integration testing |
+| Library           | Purpose                                                                  |
+| ----------------- | ------------------------------------------------------------------------ |
+| **FastAPI**       | High-performance async web framework                                     |
+| **Uvicorn**       | ASGI web server                                                          |
+| **Pydantic**      | Data validation, schemas, and settings management                        |
+| **python-dotenv** | Environment variable loading                                             |
+| **Slowapi**       | Per-IP rate limiting (60 req/min on recommendations, 20 req/min on root) |
+| **Supabase**      | Serverless Postgres DB — stores user preferences                         |
+| **Upstash Redis** | Serverless Redis — caches recommendation results (TTL: 5 min)            |
+| **cachetools**    | In-memory caching utilities                                              |
+| **Pytest**        | Unit and integration testing                                             |
 
 ## Features
 
@@ -24,14 +24,18 @@ A fast, scalable personalized recommendation engine built with [FastAPI](https:/
 - 🛡️ **Rate Limiting** — Built-in per-IP rate limiting using SlowAPI
 - 🌐 **CORS Support** — Configured for cross-origin requests (tighten for production)
 - 📋 **Background Tasks** — Non-blocking analytics logging after each recommendation response
+- ⚠️ **Structured Error Handling** — Custom exception handlers return consistent JSON error responses
+- 🐳 **Docker Ready** — Includes `Dockerfile` and `docker-compose.yml` for local development
 
 ## Project Structure
 
 ```
-recommendation-api/
+echo-api/
 ├── app/
 │   ├── routers/
 │   │   └── recommendations.py  # GET /recommend/ endpoint
+│   ├── schemas/
+│   │   └── recommeder.py       # Pydantic response models (RecommendationItem, RecommendationResponse)
 │   ├── services/
 │   │   └── engine.py           # Scoring logic, Supabase query, caching
 │   ├── utils/
@@ -39,11 +43,13 @@ recommendation-api/
 │   │   └── cache.py            # Redis get/set helpers
 │   ├── config.py               # App settings loaded from .env
 │   ├── database.py             # Supabase client (lazy initialization)
-│   ├── redis_client.py         # Upstash Redis client (lazy initialization)
 │   ├── dependencies.py         # FastAPI API key dependency
+│   ├── exceptions.py           # Global HTTP & unhandled exception handlers + logging config
+│   ├── redis_client.py         # Upstash Redis client (lazy initialization)
 │   └── main.py                 # App entry point, middleware, routers
 ├── docs/
 ├── tests/
+│   └── test_recommendations.py
 ├── .env.example
 ├── docker-compose.yml
 ├── Dockerfile
@@ -59,7 +65,7 @@ Create a `.env` file in the project root. Required variables:
 API_KEY_EXAMPLES=supersecretkey123,testkey456
 
 # App Info
-APP_NAME=Recommendation Engine API
+APP_NAME=EchoAPI
 
 # Supabase (get from supabase.com → Project Settings → API)
 SUPABASE_URL=https://your-project-id.supabase.co
@@ -68,9 +74,6 @@ SUPABASE_ANON_KEY=your-anon-key
 # Upstash Redis (get from upstash.com → Redis → REST API)
 UPSTASH_REDIS_REST_URL=https://your-redis-url.upstash.io
 UPSTASH_REDIS_REST_TOKEN=your-redis-token
-
-# Supabase PostgreSQL (optional, for SQLAlchemy ORM integration)
-DATABASE_URL=postgresql://user:password@host:port/postgres
 ```
 
 ### Supabase Setup
@@ -78,9 +81,9 @@ DATABASE_URL=postgresql://user:password@host:port/postgres
 1. Create a project at [supabase.com](https://supabase.com)
 2. Go to **Table Editor → New Table** and create `user_preferences`:
 
-| Column | Type | Notes |
-|---|---|---|
-| `user_id` | `int8` | Primary Key |
+| Column               | Type   | Notes                                |
+| -------------------- | ------ | ------------------------------------ |
+| `user_id`            | `int8` | Primary Key                          |
 | `preferred_category` | `text` | e.g. `electronics`, `sports`, `home` |
 
 3. Insert test data: `user_id = 123`, `preferred_category = electronics`
@@ -90,8 +93,8 @@ DATABASE_URL=postgresql://user:password@host:port/postgres
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/Ibrahim-Lbib/recommendation-api.git
-cd recommendation-api
+git clone https://github.com/Ibrahim-Lbib/echo-api.git
+cd echo-api
 ```
 
 ### 2. Create a virtual environment and install dependencies
@@ -111,25 +114,42 @@ cp .env.example .env
 
 ## Running the Application
 
+### Local (without Docker)
+
 ```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Then open `http://localhost:8000/docs` for the interactive Swagger UI.
+### With Docker
+
+```bash
+docker build -t echo-api .
+docker run -p 8000:8000 --env-file .env echo-api
+```
+
+### Local Dev with Docker Compose (Postgres + Redis)
+
+The `docker-compose.yml` spins up a local Postgres and Redis instance, useful for development without Supabase/Upstash:
+
+```bash
+docker-compose up -d
+```
+
+Then open `http://localhost:8000/docs` for the interactive Swagger UI, or `http://localhost:8000/redoc` for ReDoc.
 
 ## API Endpoints
 
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `GET` | `/` | ❌ | Health check / welcome message |
-| `GET` | `/recommend/` | ✅ `X-API-Key` | Get personalized recommendations |
+| Method | Endpoint      | Auth           | Description                      |
+| ------ | ------------- | -------------- | -------------------------------- |
+| `GET`  | `/`           | ❌             | Health check / welcome message   |
+| `GET`  | `/recommend/` | ✅ `X-API-Key` | Get personalized recommendations |
 
 ### `GET /recommend/` Query Parameters
 
-| Parameter | Type | Default | Description |
-|---|---|---|---|
-| `user_id` | `int` | `None` | Optional. Enables personalization via Supabase preferences |
-| `limit` | `int` | `5` | Number of results to return (1–20) |
+| Parameter | Type  | Default | Description                                                |
+| --------- | ----- | ------- | ---------------------------------------------------------- |
+| `user_id` | `int` | `None`  | Optional. Enables personalization via Supabase preferences |
+| `limit`   | `int` | `5`     | Number of results to return (1–20)                         |
 
 ### Example Request
 
@@ -146,15 +166,37 @@ curl -H "X-API-Key: supersecretkey123" \
   "user_id": 123,
   "limit": 5,
   "recommendations": [
-    {"id": 15, "name": "Tablet", "category": "electronics", "score": 97},
-    {"id": 29, "name": "Laptop", "category": "electronics", "score": 99},
-    {"id": 24, "name": "Smart Watch", "category": "electronics", "score": 95}
+    { "id": 29, "name": "Laptop", "category": "electronics", "score": 129 },
+    { "id": 15, "name": "Tablet", "category": "electronics", "score": 127 },
+    { "id": 24, "name": "Smart Watch", "category": "electronics", "score": 125 }
   ]
 }
 ```
+
+### Error Responses
+
+All errors return a consistent JSON shape:
+
+```json
+{
+  "success": false,
+  "error": "API Key missing. Please provide X-API-Key header.",
+  "status_code": 401
+}
+```
+
+| Status Code | Meaning                                      |
+| ----------- | -------------------------------------------- |
+| `401`       | Missing `X-API-Key` header                   |
+| `403`       | Invalid API key                              |
+| `422`       | Validation error (e.g. `limit` out of range) |
+| `429`       | Rate limit exceeded                          |
+| `500`       | Internal server error                        |
 
 ## Testing
 
 ```bash
 pytest
 ```
+
+Tests use dependency overrides to bypass auth and mock the Redis cache, so no live credentials are needed.

@@ -10,7 +10,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 
 app = FastAPI(
-    title="Recommendation Engine API",
+    title="EchoAPI",
     description=(
         "A scalable recommendation engine API.\n\n"
         "Features:\n"
@@ -43,4 +43,4 @@ app.add_middleware(
 @app.get("/")
 @limiter.limit("20/minute") # Root also protected
 def root(request: Request):
-    return {"message": "Welcome to the Recommendation Engine API"}
+    return {"message": "Welcome to EchoAPI"}

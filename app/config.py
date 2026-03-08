@@ -7,7 +7,7 @@ load_dotenv(override=True)
 class Settings():
     # API Keys
     API_KEYS: set[str] = {k for k in os.getenv("API_KEY_EXAMPLES", "").split(",") if k.strip()}
-    APP_NAME: str = os.getenv("APP_NAME", "Recommendation Engine API")
+    APP_NAME: str = os.getenv("APP_NAME", "EchoAPI")
 
     # Database Connection
     SB_URL: str = os.getenv("SUPABASE_URL")
