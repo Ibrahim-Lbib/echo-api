@@ -4,6 +4,9 @@ from typing import List, Optional
 from app.database import get_supabase
 from supabase import Client
 from app.utils.cache import get_cached_recommendations, set_cached_recommendations
+import logging
+
+logger = logging.getLogger(__name__)
 
 FAKE_ITEMS = [
   {"id": 1, "name": "Wireless Headphones", "category": "electronics", "popularity": 85},
@@ -144,9 +147,8 @@ async def get_recommendations(user_id: Optional[int], limit: int = 5) -> List[di
         return base
 
     sorted_items = sorted(FAKE_ITEMS, key=score, reverse=True)
+    result = sorted_items[:limit]
 
-    # Cache the result
-    set_cached_recommendations(cache_key, sorted_items)
-    if db_error:
-        return sorted_items[:limit]
-    return sorted_items[:limit]
+    # Cache the sliced result
+    set_cached_recommendations(cache_key, result)
+    return result

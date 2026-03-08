@@ -1,15 +1,36 @@
-# e.g., schemas for user input and recommendation output
-from pydantic import BaseModel, Field
+# Schemas for recommendation output
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 
 class RecommendationItem(BaseModel):
-    id: int = Field(..., example=1)
-    name: str = Field(..., example="Wireless Headphones")
-    category: str = Field(..., example="electronics")
-    score: int = Field(..., example=85)
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "id": 1,
+            "name": "Wireless Headphones",
+            "category": "electronics",
+            "score": 85
+        }
+    })
+
+    id: int
+    name: str
+    category: str
+    score: int
+
 
 class RecommendationResponse(BaseModel):
-    success: bool = Field(..., example=True)
-    user_id: Optional[int] = Field(None, example=123)
-    limit: int = Field(..., example=5)
+    model_config = ConfigDict(json_schema_extra={
+        "example": {
+            "success": True,
+            "user_id": 123,
+            "limit": 5,
+            "recommendations": [
+                {"id": 1, "name": "Wireless Headphones", "category": "electronics", "score": 85}
+            ]
+        }
+    })
+
+    success: bool
+    user_id: Optional[int] = None
+    limit: int
     recommendations: List[RecommendationItem]

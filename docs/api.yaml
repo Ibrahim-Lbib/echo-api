@@ -1,1 +1,131 @@
 # Optional: Export OpenAPI spec here
+openapi: 3.0.0
+info:
+  title: Recommendation Engine API
+  description: |
+    A scalable recommendation engine API.
+
+    Features:
+    - API Key authentication
+    - Rate limiting
+    - Personalized recommendations (DB + caching)
+    - Ready for serverless deployment
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Local development
+paths:
+  /recommend/:
+    get:
+      summary: Get personalized recommendations
+      description: Returns a list of recommended items, optionally personalized by user_id.
+      operationId: getRecommendations
+      parameters:
+        - name: user_id
+          in: query
+          description: Optional user ID for personalization
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: limit
+          in: query
+          description: Number of recommendations (1-20)
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 5
+            minimum: 1
+            maximum: 20
+        - name: api_key
+          in: header
+          description: API Key for authentication
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecommendationResponse"
+        "401":
+          description: Unauthorized - Invalid or missing API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Too Many Requests - Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    RecommendationItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 1
+        name:
+          type: string
+          example: Wireless Headphones
+        category:
+          type: string
+          example: electronics
+        score:
+          type: integer
+          format: int32
+          example: 85
+      required:
+        - id
+        - name
+        - category
+        - score
+    RecommendationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        user_id:
+          type: integer
+          format: int32
+          nullable: true
+          example: 123
+        limit:
+          type: integer
+          format: int32
+          example: 5
+        recommendations:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecommendationItem"
+      required:
+        - success
+        - user_id
+        - limit
+        - recommendations
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: "Unauthorized - Invalid or missing API key"
+      required:
+        - success
+        - error
