@@ -11,7 +11,14 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 app = FastAPI(
     title="Recommendation Engine API",
-    description="Scalable API for generating personalized recommendations",
+    description=(
+        "A scalable recommendation engine API.\n\n"
+        "Features:\n"
+        "- API Key authentication\n"
+        "- Rate limiting\n"
+        "- Personalized recommendations (DB + caching)\n"
+        "- Ready for serverless deployment"
+    ),
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",

@@ -4,6 +4,7 @@ from typing import Optional, List, Dict
 from app.dependencies import get_api_key
 from app.utils.rate_limiter import limiter
 from app.services.engine import get_recommendations as fetch_recommendations
+from app.schemas.recommeder import RecommendationResponse, RecommendationItem 
 
 router = APIRouter(
     prefix="/recommend", 
@@ -15,7 +16,12 @@ def log_recommendation(user_id: Optional[int], recs: List[Dict]):
     print(f"Background: Generated {len(recs)} recs for user {user_id}")
     # Later: save to analytics table, pre-compute next batch, etc.
 
-@router.get("/")
+@router.get(
+    "/",
+    response_model=RecommendationResponse,
+    summary="Get personalized recommendations",
+    description="Returns a list of recommended items, optionally personalized by user_id."
+)
 @limiter.limit("60/minute")
 async def get_recommendations(
     request: Request,
@@ -34,7 +40,7 @@ async def get_recommendations(
         "user_id": user_id,
         "limit": limit,
         "recommendations": [
-            {"id": item["id"], "name": item["name"], "category": item["category"], "score": item["popularity"]}
+            RecommendationItem(id=item["id"], name=item["name"], category=item["category"], score=item["popularity"])
             for item in recs
         ]
     }
