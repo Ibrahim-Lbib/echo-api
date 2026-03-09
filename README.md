@@ -1,3 +1,11 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-white.png">
+    <source media="(prefers-color-scheme: light)" srcset="docs/assets/logo-black.png">
+    <img alt="EchoAPI Logo" src="docs/assets/logo-black.png" width="400">
+  </picture>
+</p>
+
 # EchoAPI
 
 **EchoAPI** is a fast, scalable personalized recommendation engine built with [FastAPI](https://fastapi.tiangolo.com/), backed by **Supabase** for user preferences and **Upstash Redis** for lightning-fast cached responses.
