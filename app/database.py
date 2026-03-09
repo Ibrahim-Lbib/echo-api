@@ -9,11 +9,14 @@ def get_supabase() -> Client:
     if _supabase is None:
         url = settings.SB_URL
         key = settings.SB_KEY
-
-        url_2 = settings.SUPABASE_URL_2
-        key_2 = settings.SUPABASE_SERVICE_ROLE_KEY  
-
-        if not url or not key or not url_2 or not key_2:
+        if not url or not key:
             raise ValueError("Missing Supabase URL or SB_KEY in environment")
-        _supabase = create_client(url, key, url_2, key_2)
+        _supabase = create_client(url, key)
     return _supabase
+
+def get_supabase_2() -> Client:
+    url = settings.SUPABASE_URL_2
+    key = settings.SUPABASE_SERVICE_ROLE_KEY
+    if not url or not key:
+        raise ValueError("Missing Supabase URL or SB_KEY in environment")
+    return create_client(url, key)
