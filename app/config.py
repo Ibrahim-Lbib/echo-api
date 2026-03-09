@@ -16,6 +16,10 @@ class Settings():
     SB_URL: str = os.getenv("SUPABASE_URL")
     SB_KEY: str = os.getenv("SUPABASE_ANON_KEY")
 
+    # API_KEY_TABLE
+    SUPABASE_URL_2: str = os.getenv("SUPABASE_URL_2")
+    SUPABASE_SERVICE_ROLE_KEY: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
+
     # Supabase PostgreSQL
     SQLALCHEMY_DATABASE_URL: str = os.getenv("DATABASE_URL")
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = False
