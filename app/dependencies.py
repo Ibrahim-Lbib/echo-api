@@ -16,3 +16,10 @@ async def get_api_key(x_api_key: str = Header(None, alias="X-API-Key")):
         )
     
     return x_api_key
+
+async def verify_api_key(x_api_key: str = Header(...)):
+    # query your Supabase api_keys table
+    response = supabase.table("api_keys").select("*").eq("key", x_api_key).single().execute()
+    if not response.data:
+        raise HTTPException(status_code=403, detail={"success": False, "error": "Invalid API key", "status_code": 403})
+    return response.data
