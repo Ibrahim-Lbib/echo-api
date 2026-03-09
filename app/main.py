@@ -47,7 +47,6 @@ def health_check():
     """Liveness check used by Railway and load balancers."""
     return {"status": "ok"}
 
-
 @app.get("/")
 @limiter.limit("20/minute") # Root also protected
 def root(request: Request):
