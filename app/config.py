@@ -10,7 +10,7 @@ class Settings():
     APP_NAME: str = os.getenv("APP_NAME", "EchoAPI")
 
     # CORS (comma-separated origins, e.g. https://myapp.com,https://www.myapp.com)
-    CORS_ORIGINS: list[str] = [o.strip() for o in os.getenv("CORS_ORIGINS", "*").split(",") if o.strip()]
+    CORS_ORIGINS: list[str] = [o.strip() for o in os.getenv("CORS_ORIGINS", "https://echoapi-frontend.netlify.app").split(",") if o.strip()]
 
     # Database Connection
     SB_URL: str = os.getenv("SUPABASE_URL")
