@@ -36,7 +36,7 @@ app.include_router(preferences.router)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,  # Set CORS_ORIGINS env var in production
+    allow_origins=["https://echoapi-frontend.netlify.app"],  # Set CORS_ORIGINS env var in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
