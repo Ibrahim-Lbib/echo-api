@@ -26,14 +26,6 @@ app = FastAPI(
     openapi_url="/openapi.json"
 )
 
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-app.add_exception_handler(StarletteHTTPException, http_exception_handler)
-app.add_exception_handler(Exception, general_exception_handler)
-
-app.include_router(recommendations.router)
-app.include_router(preferences.router)
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://echoapi-frontend.netlify.app"],  # Set CORS_ORIGINS env var in production
@@ -41,6 +33,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(Exception, general_exception_handler)
+
+app.include_router(recommendations.router)
+app.include_router(preferences.router)
 
 @app.get("/health", tags=["health"])
 def health_check():
