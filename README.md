@@ -2,7 +2,7 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/logo-white.png">
     <source media="(prefers-color-scheme: light)" srcset="docs/assets/logo-black.png">
-    <img alt="EchoAPI Logo" src="docs/assets/logo-black.png" width="400">
+    <img alt="EchoAPI Logo" src="docs/assets/logo-black.png" width="600">
   </picture>
 </p>
 
