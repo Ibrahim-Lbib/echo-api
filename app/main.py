@@ -28,7 +28,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://echoapi-frontend.netlify.app"],  # Set CORS_ORIGINS env var in production
+    allow_origins=settings.CORS_ORIGINS,  # Set CORS_ORIGINS env var in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -41,6 +41,7 @@ app.add_exception_handler(Exception, general_exception_handler)
 
 app.include_router(recommendations.router)
 app.include_router(preferences.router)
+
 
 @app.get("/health", tags=["health"])
 def health_check():
