@@ -28,12 +28,17 @@ async def get_recommendations(
     background_tasks: BackgroundTasks,
     user_id: int | None = Query(None, description="Optional user ID for personalization"),
     limit: int = Query(5, ge=1, le=20, description="Number of recommendations (1-20)"),
-    api_key: str = Depends(get_api_key)
+    api_key: dict = Depends(get_api_key)
 ):
     recs = await fetch_recommendations(user_id, limit)
 
     # Fire back task (non-blocking)
     background_tasks.add_task(log_recommendation, user_id, recs)
+
+    if user_id is None:
+        cached_popular = get_redis().get("popular_recs")
+        if cached_popular:
+            return {"success": True, "recommendations": json.loads(cached_popular)}
 
     return {
         "success": True,

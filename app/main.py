@@ -8,7 +8,25 @@ from app.routers import recommendations, preferences
 from app.exceptions import http_exception_handler, general_exception_handler
 from app.config import settings
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.base import BaseHTTPMiddleware
+from app.utils.analytics import log_request
 
+class AnalyticsMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start_time = time()
+        response = await call_next(request)
+        duration = (time() - start_time) * 1000  # ms
+        
+        # Extract user_id from query if present (simple for MVP)
+        user_id = request.query_params.get("user_id")
+        
+        log_request(
+            request=request,
+            response_status=response.status_code,
+            user_id=user_id,
+            duration_ms=duration
+        )
+        return response
 
 app = FastAPI(
     title="EchoAPI",
@@ -34,6 +52,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.add_middleware(AnalyticsMiddleware)
+
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)
@@ -41,7 +61,7 @@ app.add_exception_handler(Exception, general_exception_handler)
 
 app.include_router(recommendations.router)
 app.include_router(preferences.router)
-
+app.include_router(admin.router)
 
 @app.get("/health", tags=["health"])
 def health_check():

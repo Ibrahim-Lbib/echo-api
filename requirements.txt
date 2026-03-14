@@ -7,3 +7,5 @@ pytest
 supabase
 cachetools
 upstash-redis
+scikit-learn
+bcrypt

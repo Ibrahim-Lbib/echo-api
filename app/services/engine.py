@@ -5,6 +5,8 @@ from app.database import get_supabase
 from supabase import Client
 from app.utils.cache import get_cached_recommendations, set_cached_recommendations
 import logging
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +112,35 @@ FAKE_ITEMS = [
   {"id": 99, "name": "Dumbbell Rack", "category": "sports", "popularity": 38},
   {"id": 100, "name": "E-Reader", "category": "electronics", "popularity": 62}
 ]
+
+MOCK_USER_ITEM_MATRIX = np.array([
+    [1, 0, 1, 0, 1],  # user 1
+    [0, 1, 0, 1, 0],  # user 2
+    [1, 1, 0, 0, 1],  # user 3
+])
+
+async def get_ml_recommendations(user_id: int, limit: int = 5, use_ml: bool = False) -> List[dict]:
+    if not use_ml or user_id >= len(MOCK_USER_ITEM_MATRIX):
+        return get_recommendations(user_id, limit)  # fallback to current
+
+    # Simple user-based CF
+    user_vector = MOCK_USER_ITEM_MATRIX[user_id - 1].reshape(1, -1)
+    similarities = cosine_similarity(user_vector, MOCK_USER_ITEM_MATRIX)[0]
+    
+    # Find top similar users (exclude self)
+    similar_users = np.argsort(similarities)[::-1][1:4]  # top 3 similar
+    
+    # Aggregate liked items from similar users
+    scores = np.zeros(len(FAKE_ITEMS))
+    for sim_user_idx in similar_users:
+        scores += MOCK_USER_ITEM_MATRIX[sim_user_idx] * similarities[sim_user_idx + 1]
+    
+    # Recommend top unscored items for this user
+    user_likes = MOCK_USER_ITEM_MATRIX[user_id - 1]
+    scores[user_likes > 0] = -np.inf  # don't recommend already liked
+    top_indices = np.argsort(scores)[::-1][:limit]
+    
+    return [FAKE_ITEMS[i] for i in top_indices]
 
 async def get_recommendations(user_id: Optional[int], limit: int = 5) -> List[dict]:
     db_error = False
