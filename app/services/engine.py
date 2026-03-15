@@ -143,8 +143,6 @@ async def get_ml_recommendations(user_id: int, limit: int = 5, use_ml: bool = Fa
     return [FAKE_ITEMS[i] for i in top_indices]
 
 async def get_recommendations(user_id: Optional[int], limit: int = 5) -> List[dict]:
-    db_error = False
-
     # Create cache key (include limit for flexibility)
     cache_key = f"recs_{user_id or 'anon'}_{limit}"
 
@@ -168,7 +166,6 @@ async def get_recommendations(user_id: Optional[int], limit: int = 5) -> List[di
             else:
                 logger.info(f"User {user_id} has no preferred category")
         except Exception as e:
-            db_error = True
             logger.error(f"DB error (using fallback): {e}")
 
     def score(item):
